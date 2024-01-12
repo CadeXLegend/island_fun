@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import { RegionedTerrain, TerrainParameters, VegetationRegionTypes, VegetationRegions, VegetationRegionsMapped } from './terrain-types';
+import { RegionedTerrain, TerrainParameters, VegetationRegionTypes, VegetationRegionsMapped } from './terrain-types';
 import { generateTerrain } from './terrain-generation';
 
 class Sketch extends p5 {
