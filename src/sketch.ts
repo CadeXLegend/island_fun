@@ -1,5 +1,5 @@
 import p5 from 'p5';
-import { RegionedTerrain, TerrainParameters, VegetationRegion } from './terrain-types';
+import { RegionedTerrain, TerrainParameters, VegetationRegionTypes, VegetationRegions, VegetationRegionsMapped } from './terrain-types';
 import { generateTerrain } from './terrain-generation';
 
 class Sketch extends p5 {
@@ -37,6 +37,7 @@ class Sketch extends p5 {
       this.dirtied = false;
     }
     drawHoverText();
+    drawPlayer();
   }
 }
 
@@ -96,4 +97,25 @@ function redrawMap() {
   sketch.copy(sketch.drawnMap,
     0, 0, sketch.terrainParams.width, sketch.terrainParams.height,
     0, 0, sketch.terrainParams.width, sketch.terrainParams.height)
+}
+
+const player: Entity = { x: NaN, y: NaN, size: 6 };
+function drawPlayer() {
+  if (Number.isNaN(player.x) ||
+    Number.isNaN(player.y)) {
+    const beach = VegetationRegionsMapped[VegetationRegionTypes.beach];
+    const spawnLocation = Math.round(sketch.random(0, beach.nodes.length - 1));
+    const spawnNode = beach.nodes[spawnLocation];
+    player.x = spawnNode.x;
+    player.y = spawnNode.y;
+  }
+  sketch.fill(215, 18, 18, 255);
+  sketch.circle(player.x, player.y, player.size);
+  sketch.dirtied = true;
+}
+
+type Entity = {
+  x: number;
+  y: number;
+  size: number;
 }
