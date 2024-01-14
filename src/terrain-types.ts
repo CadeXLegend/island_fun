@@ -1,6 +1,7 @@
 import p5 from "p5";
 import * as chroma from 'chroma.ts'
 import { Entity } from "./existence-types";
+import { Voronoi } from "d3-delaunay";
 
 export type TerrainParameters = {
     height: number;
@@ -11,11 +12,14 @@ export type TerrainParameters = {
     lacunarity: number;
     domainWarpAmplification: number;
     fractalOctaves: number;
+    biomeCells: number;
 }
 
 export type VegetationRegion = {
     regionType: VegetationRegionTypes;
-    terrainTiles: TerrainTile[];
+    terrainTiles: TerrainTile[][];
+    voronoiMap?: Voronoi;
+    voronoiCellsAmount?: number;
     minimumHeight: number;
     maximumHeight: number;
     colourScale: chroma.Scale;
@@ -33,7 +37,9 @@ export enum VegetationRegionTypes {
 }
 
 export type RegionedTerrain = {
-    regions: VegetationRegion[];
+    voronoiDiagram?: Voronoi;
+    voronoiCellsAmount?: number;
+    regionTiles: VegetationRegion[];
     rawTerrain: TerrainTile[][];
 }
 
@@ -136,11 +142,11 @@ type VegetationDictionary = {
 export const VegetationRegionsMapped: VegetationDictionary = {
     "Deeper Water": deeperwater,
     "Shallow Water": shallowwater,
-    "Beach": beach,
+    Beach: beach,
     "Inland Sand": inlandsand,
     "Shallow Greenery": shallowgreenery,
     "Dense Greenery": densegreenery,
-    "Grove": grove
+    Grove: grove
 }
 
 export const VegetationRegions = [deeperwater, shallowwater, beach, inlandsand, shallowgreenery, densegreenery, grove] as VegetationRegion[];

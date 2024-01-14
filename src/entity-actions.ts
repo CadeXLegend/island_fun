@@ -11,9 +11,10 @@ export function Spawn(typeOfEntity: EntityType, sketch: Sketch) {
     if (typeOfEntity === EntityType.Player) {
         if (player.currentTile === undefined) {
             const beach = VegetationRegionsMapped[VegetationRegionTypes.beach];
-            const spawnLocation = Math.round(sketch.random(0, beach.terrainTiles.length - 1));
-            player.currentTile = beach.terrainTiles[spawnLocation];
-            beach.terrainTiles[spawnLocation].occupyingEntity = player;
+            const spawnLocationX = Math.round(sketch.random(0, beach.terrainTiles.length - 1));
+            const spawnLocationY = Math.round(sketch.random(0, beach.terrainTiles[spawnLocationX].length - 1));
+            player.currentTile = beach.terrainTiles[spawnLocationX][spawnLocationY];
+            beach.terrainTiles[spawnLocationX][spawnLocationY].occupyingEntity = player;
             // player.dirtied = true;
         }
         spawnedEntities.push(player);
