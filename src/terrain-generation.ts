@@ -1,6 +1,7 @@
 import { TerrainParameters, TerrainTile, RegionedTerrain, VegetationRegions, DirectionalNeighbours } from './terrain-types';
 import p5 from 'p5';
 import FastNoiseLite from 'fastnoise-lite';
+import { Delaunay } from 'd3-delaunay';
 
 export function generateTerrain(terrainParams: TerrainParameters, p5: p5): RegionedTerrain {
     let terrain: TerrainTile[][] = [];
@@ -26,7 +27,7 @@ export function generateTerrain(terrainParams: TerrainParameters, p5: p5): Regio
             if (region === undefined) {
                 console.log('failed to generate')
                 return {
-                    regions: VegetationRegions,
+                    regionTiles: VegetationRegions,
                     rawTerrain: terrain
                 };
             }
@@ -55,9 +56,14 @@ export function generateTerrain(terrainParams: TerrainParameters, p5: p5): Regio
                 }
             };
             terrain[x][y] = terrainObject;
-            region.terrainTiles.push(terrainObject);
+            if (!region.terrainTiles[x]) {
+                region.terrainTiles[x] = [];
+            }
+            region.terrainTiles[x].push(terrainObject);
         }
     }
+    // post-gen operations
+    let chosenVoronoiPoints: number[][] = [];
     for (let x = 0; x < terrainParams.width; ++x) {
         for (let y = 0; y < terrainParams.height; ++y) {
             const tile = terrain[x][y];
@@ -75,8 +81,38 @@ export function generateTerrain(terrainParams: TerrainParameters, p5: p5): Regio
             }
         }
     }
+    // generate voronoi for overall map
+    while (chosenVoronoiPoints.length < 40) {
+        const randNumber1 = Math.floor(Math.random() * terrainParams.width) + 1;
+        const randNumber2 = Math.floor(Math.random() * terrainParams.height) + 1;
+        if (chosenVoronoiPoints.indexOf([randNumber1, randNumber2]) === -1) {
+            chosenVoronoiPoints.push([randNumber1, randNumber2]);
+        }
+    }
+    const delaunay = Delaunay.from(chosenVoronoiPoints);
+    const voronoi = delaunay.voronoi([0, 0, terrainParams.width, terrainParams.height]);
+    
+    for (let i = 0; i < VegetationRegions.length; ++i) {
+        const regıon = VegetationRegions[i];
+        const regionVoronoiMap: number[][] = [];
+        while (regionVoronoiMap.length < 200) {
+            const randNumber1 = Math.floor(Math.random() * regıon.terrainTiles.length) + 1;
+            const randNumber2 = Math.floor(Math.random() * regıon.terrainTiles.length) + 1;
+            if (regionVoronoiMap.indexOf([randNumber1, randNumber2]) === -1) {
+                regionVoronoiMap.push([randNumber1, randNumber2]);
+            }
+        }
+        const delaunay = Delaunay.from(regionVoronoiMap);
+        const voronoi = delaunay.voronoi([0, 0, terrainParams.width, terrainParams.height]);
+        regıon.voronoiMap = voronoi;
+        regıon.voronoiCellsAmount = delaunay.points.length;
+    }
+    // end of generate voronoi
+    // end of post-gen operations
     return {
-        regions: VegetationRegions,
+        voronoiDiagram: voronoi,
+        voronoiCellsAmount: delaunay.points.length,
+        regionTiles: VegetationRegions,
         rawTerrain: terrain
     };
 }
