@@ -1,9 +1,9 @@
-import { TerrainParameters, TerrainNode, RegionedTerrain, VegetationRegions } from './terrain-types';
+import { TerrainParameters, TerrainTile, RegionedTerrain, VegetationRegions, DirectionalNeighbours } from './terrain-types';
 import p5 from 'p5';
 import FastNoiseLite from 'fastnoise-lite';
 
 export function generateTerrain(terrainParams: TerrainParameters, p5: p5): RegionedTerrain {
-    let terrain: TerrainNode[][] = [];
+    let terrain: TerrainTile[][] = [];
     p5.noiseSeed(terrainParams.seed);
     const noise = new FastNoiseLite();
     noise.SetSeed(terrainParams.seed);
@@ -16,6 +16,7 @@ export function generateTerrain(terrainParams: TerrainParameters, p5: p5): Regio
     noise._FractalType = FastNoiseLite.FractalType.FBm;
     noise._NoiseType = FastNoiseLite.NoiseType.OpenSimplex2S;
     noise._DomainWarpType = FastNoiseLite.DomainWarpType.OpenSimplex2;
+
 
     for (let x = 0; x < terrainParams.width; ++x) {
         terrain[x] = [];
@@ -38,14 +39,40 @@ export function generateTerrain(terrainParams: TerrainParameters, p5: p5): Regio
             //     normalizedNoise = p5.map(noise.GetNoise(x, y), -1, 1, 0, 1);
             // }
             const colour = region.colour(normalizedNoise, region.colourScale, p5);
-            const terrainObject = {
+            const terrainObject: TerrainTile = {
                 x: x,
                 y: y,
                 colour: colour,
-                regionType: region.regionType
+                regionType: region.regionType,
+                occupyingEntity: undefined,
+                assignEntity: (entity) => {
+                    if (entity.currentTile === undefined) {
+                        return;
+                    }
+                    entity.currentTile.occupyingEntity = undefined;
+                    entity.currentTile = terrainObject;
+                    entity.currentTile.occupyingEntity = entity;
+                }
             };
             terrain[x][y] = terrainObject;
-            region.nodes.push(terrainObject);
+            region.terrainTiles.push(terrainObject);
+        }
+    }
+    for (let x = 0; x < terrainParams.width; ++x) {
+        for (let y = 0; y < terrainParams.height; ++y) {
+            const tile = terrain[x][y];
+            tile.neighbours = {
+                directionalNeighbours: {
+                    [DirectionalNeighbours.Left]: terrain?.[tile.x - 1]?.[tile.y],
+                    [DirectionalNeighbours.Right]: terrain?.[tile.x + 1]?.[tile.y],
+                    [DirectionalNeighbours.Up]: terrain?.[tile.x]?.[tile.y + 1],
+                    [DirectionalNeighbours.Down]: terrain?.[tile.x]?.[tile.y - 1],
+                    [DirectionalNeighbours.UpperLeft]: terrain?.[tile.x - 1]?.[tile.y + 1],
+                    [DirectionalNeighbours.UpperRight]: terrain?.[tile.x + 1]?.[tile.y + 1],
+                    [DirectionalNeighbours.LowerLeft]: terrain?.[tile.x - 1]?.[tile.y - 1],
+                    [DirectionalNeighbours.LowerRight]: terrain?.[tile.x + 1]?.[tile.y - 1]
+                }
+            }
         }
     }
     return {
