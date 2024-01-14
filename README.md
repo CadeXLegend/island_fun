@@ -19,3 +19,17 @@ For these next ones, make sure the live updating is set to off:
 - Key 3: Show voronoi diagram of the Shallow Greenery region
 - Key 4: Show voronoi diagram of the Dense Greenery region
 - Key 5: Show voronoi diagram of the Grove region
+
+
+### TODO
+- Generate stuff with voronoi
+  - Trees
+  - Rocks
+  - Ruins?
+- Maybe do a moisture/heatmap
+- Make roads
+- Spawn in some interesting stuff
+- Expand the Graph system to make nodes contain the entire entity
+  - Currently entities only occupy the core node, irregardless of their size
+    - I already thought of a way to do it
+      - WIth this system, collision will be Graph-based instead of collision shape based
