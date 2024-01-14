@@ -1,5 +1,6 @@
 import p5 from "p5";
 import * as chroma from 'chroma.ts'
+import { Entity } from "./existence-types";
 
 export type TerrainParameters = {
     height: number;
@@ -14,7 +15,7 @@ export type TerrainParameters = {
 
 export type VegetationRegion = {
     regionType: VegetationRegionTypes;
-    nodes: TerrainNode[];
+    terrainTiles: TerrainTile[];
     minimumHeight: number;
     maximumHeight: number;
     colourScale: chroma.Scale;
@@ -22,29 +23,51 @@ export type VegetationRegion = {
 }
 
 export enum VegetationRegionTypes {
-    deeperwater ="Deeper Water", 
-    shallowwater = "Shallow Water", 
-    beach = "Beach", 
-    inlandsand = "Inland Sand", 
-    shallowgreenery = "Shallow Greenery", 
-    densegreenery = "Dense Greenery", 
+    deeperwater = "Deeper Water",
+    shallowwater = "Shallow Water",
+    beach = "Beach",
+    inlandsand = "Inland Sand",
+    shallowgreenery = "Shallow Greenery",
+    densegreenery = "Dense Greenery",
     grove = "Grove"
 }
 
 export type RegionedTerrain = {
     regions: VegetationRegion[];
-    rawTerrain: TerrainNode[][];
+    rawTerrain: TerrainTile[][];
 }
 
-export type TerrainNode = {
-     x: number;
-     y: number;
-     colour: p5.Color;
-     regionType: VegetationRegionTypes;
+export type TerrainTile = {
+    x: number;
+    y: number;
+    neighbours?: NodeNeighbours;
+    colour: p5.Color;
+    regionType: VegetationRegionTypes;
+    occupyingEntity: Entity | undefined
+    assignEntity: (entity: Entity) => void;
+}
+
+export enum DirectionalNeighbours {
+    Left = "Left",
+    Right = "Right",
+    Up = "Up",
+    Down = "Down",
+    UpperLeft = "UpperLeft",
+    UpperRight = "UpperRight",
+    LowerLeft = "LowerLeft",
+    LowerRight = "LowerRight"
+}
+
+type DirectionalNeighboursDictionary = {
+    [key in DirectionalNeighbours]: TerrainTile;
+};
+
+export type NodeNeighbours = {
+    directionalNeighbours: DirectionalNeighboursDictionary;
 }
 
 export type TerrainColour = {
-    r: number; 
+    r: number;
     g: number;
     b: number;
     a: number;
@@ -52,7 +75,7 @@ export type TerrainColour = {
 
 export const deeperwater: VegetationRegion = {
     regionType: VegetationRegionTypes.deeperwater,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0,
     maximumHeight: 0.42,
     colourScale: chroma.scale('00054D', '0E87CC'),
@@ -60,7 +83,7 @@ export const deeperwater: VegetationRegion = {
 }
 export const shallowwater: VegetationRegion = {
     regionType: VegetationRegionTypes.shallowwater,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.42,
     maximumHeight: 0.5,
     colourScale: chroma.scale('0E87CC', '66D4B1'),
@@ -68,7 +91,7 @@ export const shallowwater: VegetationRegion = {
 }
 export const beach: VegetationRegion = {
     regionType: VegetationRegionTypes.beach,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.5,
     maximumHeight: 0.55,
     colourScale: chroma.scale('E2CA76', 'FFF6D9'),
@@ -76,7 +99,7 @@ export const beach: VegetationRegion = {
 }
 export const inlandsand: VegetationRegion = {
     regionType: VegetationRegionTypes.inlandsand,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.55,
     maximumHeight: 0.58,
     colourScale: chroma.scale('CCBB88', 'FAE8BC'),
@@ -84,7 +107,7 @@ export const inlandsand: VegetationRegion = {
 }
 export const shallowgreenery: VegetationRegion = {
     regionType: VegetationRegionTypes.shallowgreenery,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.58,
     maximumHeight: 0.66,
     colourScale: chroma.scale('ADB864', 'A9C08A', '228800'),
@@ -92,7 +115,7 @@ export const shallowgreenery: VegetationRegion = {
 }
 export const densegreenery: VegetationRegion = {
     regionType: VegetationRegionTypes.densegreenery,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.66,
     maximumHeight: 0.7,
     colourScale: chroma.scale('74B052', '247309'),
@@ -100,7 +123,7 @@ export const densegreenery: VegetationRegion = {
 }
 export const grove: VegetationRegion = {
     regionType: VegetationRegionTypes.grove,
-    nodes: [] = [],
+    terrainTiles: [] = [],
     minimumHeight: 0.7,
     maximumHeight: 1,
     colourScale: chroma.scale('3E9650', '206708'),
