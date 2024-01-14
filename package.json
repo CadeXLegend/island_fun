@@ -7,6 +7,8 @@
   },
   "dependencies": {
     "chroma.ts": "^1.0.10",
+    "d3-delaunay": "^6.0.4",
+    "delaunator": "^5.0.0",
     "p5": "^1.4.2"
   },
   "devDependencies": {
