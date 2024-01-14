@@ -1,9 +1,11 @@
 import p5 from 'p5';
-import { RegionedTerrain, TerrainParameters } from './terrain-types';
+import { RegionedTerrain, TerrainParameters, VegetationRegions, VegetationRegionsMapped } from './terrain-types';
 import { generateTerrain } from './terrain-generation';
 import { Move, RenderEntities, Spawn } from './entity-actions';
 import { player } from './entities';
 import { EntityType } from './existence-types';
+import { NumberKeys } from './inputkey-types';
+import { Voronoi } from 'd3-delaunay';
 
 export class Sketch extends p5 {
   constructor() {
@@ -43,6 +45,60 @@ export class Sketch extends p5 {
     drawHoverText();
     RenderEntities(this);
     Move(player, this);
+  }
+
+  keyPressed(): void {
+    if (this.keyCode === NumberKeys.one) {
+      if(!this.regionedTerrain.voronoiDiagram){
+        return;
+      }
+      if(!this.regionedTerrain.voronoiCellsAmount){
+        return;
+      }
+      redrawMap();
+      drawVoronoiCells(this.regionedTerrain.voronoiDiagram, this.regionedTerrain.voronoiCellsAmount);
+    }
+
+    if (this.keyCode === NumberKeys.two) {
+      if(!VegetationRegionsMapped.Beach.voronoiMap){
+        return;
+      }
+      if(!VegetationRegionsMapped.Beach.voronoiCellsAmount){
+        return;
+      }
+      redrawMap();
+      drawVoronoiCells(VegetationRegionsMapped.Beach.voronoiMap, VegetationRegionsMapped.Beach.voronoiCellsAmount);
+    }
+    if (this.keyCode === NumberKeys.three) {
+      if(!VegetationRegionsMapped['Shallow Greenery'].voronoiMap){
+        return;
+      }
+      if(!VegetationRegionsMapped['Shallow Greenery'].voronoiCellsAmount){
+        return;
+      }
+      redrawMap();
+      drawVoronoiCells(VegetationRegionsMapped['Shallow Greenery'].voronoiMap, VegetationRegionsMapped['Shallow Greenery'].voronoiCellsAmount);
+    }
+    if (this.keyCode === NumberKeys.four) {
+      if(!VegetationRegionsMapped['Dense Greenery'].voronoiMap){
+        return;
+      }
+      if(!VegetationRegionsMapped['Dense Greenery'].voronoiCellsAmount){
+        return;
+      }
+      redrawMap();
+      drawVoronoiCells(VegetationRegionsMapped['Dense Greenery'].voronoiMap, VegetationRegionsMapped['Dense Greenery'].voronoiCellsAmount);
+    }
+    if (this.keyCode === NumberKeys.five) {
+      if(!VegetationRegionsMapped.Grove.voronoiMap){
+        return;
+      }
+      if(!VegetationRegionsMapped.Grove.voronoiCellsAmount){
+        return;
+      }
+      redrawMap();
+      drawVoronoiCells(VegetationRegionsMapped.Grove.voronoiMap, VegetationRegionsMapped.Grove.voronoiCellsAmount);
+    }
   }
 }
 
@@ -85,6 +141,27 @@ function drawHoverText() {
   sketch.dirtied = true;
 }
 
+function drawVoronoiCells(voronoiDiagram: Voronoi, voronoiCellsAmount: number) {
+  sketch.stroke(0, 255);
+  sketch.fill(255, 50);
+  sketch.strokeWeight(2);
+  // Draw the Voronoi cells
+  for (let i = 0; i <voronoiCellsAmount; ++i) {
+    // Get the i-th Voronoi cell
+    const cell = voronoiDiagram.cellPolygon(i);
+    if (!cell) {
+      return
+    }
+    // Draw the cell
+    sketch.beginShape();
+    for (let j = 0; j < cell.length; j++) {
+      sketch.vertex(cell[j][0], cell[j][1]);
+    }
+    sketch.endShape(sketch.CLOSE);
+  }
+  this.dirtied = true;
+}
+
 function drawMap() {
   sketch.terrainParams = {
     height: sketch.height,
@@ -94,7 +171,8 @@ function drawMap() {
     gain: 0.5,
     lacunarity: 4,
     domainWarpAmplification: 1,
-    fractalOctaves: 5
+    fractalOctaves: 5,
+    biomeCells: 4
   };
   sketch.regionedTerrain = generateTerrain(sketch.terrainParams, sketch);
   for (let x = 0; x < sketch.terrainParams.width; ++x) {
