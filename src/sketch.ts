@@ -1,8 +1,11 @@
 import p5 from 'p5';
-import { RegionedTerrain, TerrainParameters, VegetationRegionTypes, VegetationRegionsMapped } from './terrain-types';
+import { RegionedTerrain, TerrainParameters } from './terrain-types';
 import { generateTerrain } from './terrain-generation';
+import { Move, RenderEntities, Spawn } from './entity-actions';
+import { player } from './entities';
+import { EntityType } from './existence-types';
 
-class Sketch extends p5 {
+export class Sketch extends p5 {
   constructor() {
     super(() => { });
   }
@@ -17,6 +20,7 @@ class Sketch extends p5 {
     this.noStroke();
     drawMap();
     this.updatePixels();
+    Spawn(EntityType.Player, this);
   }
 
   updateLive: boolean = false;
@@ -37,17 +41,23 @@ class Sketch extends p5 {
       this.dirtied = false;
     }
     drawHoverText();
-    drawPlayer();
+    RenderEntities(this);
+    Move(player, this);
   }
 }
 
 const sketch = new Sketch();
 
 let t: number = 0;
-let lastposx: number = 0;
-let lastposy: number = 0;
+// let lastposx: number = 0;
+// let lastposy: number = 0;
 const textOffset: number = 12;
 function drawHoverText() {
+  // if (lastposx === sketch.mouseX &&
+  //   lastposy === sketch.mouseY) {
+  //   return;
+  // }
+  let regionString = '';
   if (sketch.mouseX >= sketch.terrainParams.width ||
     sketch.mouseY >= sketch.terrainParams.height ||
     sketch.mouseX < 0 ||
@@ -56,9 +66,15 @@ function drawHoverText() {
     return;
   }
   t = 255;
-  lastposx = sketch.mouseX;
-  lastposy = sketch.mouseY;
-  const regionString = sketch.regionedTerrain.rawTerrain[sketch.mouseX][sketch.mouseY].regionType.toString();
+  // lastposx = sketch.mouseX;
+  // lastposy = sketch.mouseY;
+  const tile = sketch.regionedTerrain.rawTerrain[sketch.mouseX][sketch.mouseY];
+  if (tile.occupyingEntity === undefined) {
+    regionString = tile.regionType.toString();
+  }
+  else {
+    regionString = tile.occupyingEntity.label;
+  }
   sketch.stroke(0, 255);
   sketch.strokeWeight(1.4);
   sketch.fill(255, t);
@@ -97,25 +113,4 @@ function redrawMap() {
   sketch.copy(sketch.drawnMap,
     0, 0, sketch.terrainParams.width, sketch.terrainParams.height,
     0, 0, sketch.terrainParams.width, sketch.terrainParams.height)
-}
-
-const player: Entity = { x: NaN, y: NaN, size: 6 };
-function drawPlayer() {
-  if (Number.isNaN(player.x) ||
-    Number.isNaN(player.y)) {
-    const beach = VegetationRegionsMapped[VegetationRegionTypes.beach];
-    const spawnLocation = Math.round(sketch.random(0, beach.nodes.length - 1));
-    const spawnNode = beach.nodes[spawnLocation];
-    player.x = spawnNode.x;
-    player.y = spawnNode.y;
-  }
-  sketch.fill(215, 18, 18, 255);
-  sketch.circle(player.x, player.y, player.size);
-  sketch.dirtied = true;
-}
-
-type Entity = {
-  x: number;
-  y: number;
-  size: number;
 }
